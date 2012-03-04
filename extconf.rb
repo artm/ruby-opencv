@@ -53,6 +53,8 @@ have_header("stdarg.h")
 # Quick fix for 1.8.7
 $CFLAGS << " -I#{File.dirname(__FILE__)}/ext/opencv"
 
+$DLDFLAGS << " -Wl,-w"
+
 # Create Makefile
 create_makefile("opencv", "./ext/opencv")
 
