@@ -43,6 +43,7 @@ VALUE rb_thresh_hist_bang(VALUE self, VALUE threshold);
 
 VALUE rb_set_hist_bin_ranges(int argc, VALUE* argv, VALUE self);
 VALUE rb_set_hist_bin_ranges_bang(int argc, VALUE* argv, VALUE self);
+VALUE rb_get_ranges(VALUE self);
 
 VALUE rb_calc_back_project(VALUE self, VALUE image);
 VALUE rb_calc_back_project_patch(VALUE self, VALUE image, VALUE patch_size, VALUE method, VALUE factor);
