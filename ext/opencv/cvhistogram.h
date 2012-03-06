@@ -29,6 +29,7 @@ VALUE rb_has_range(VALUE self);
 VALUE rb_calc_hist(int argc, VALUE* argv, VALUE self);
 VALUE rb_calc_hist_bang(int argc, VALUE* argv, VALUE self);
 VALUE rb_aref(VALUE self, VALUE args);
+VALUE rb_aset(VALUE self, VALUE args);
 VALUE rb_min_max_value(VALUE self);
 VALUE rb_dims(VALUE self);
 VALUE rb_copy_hist(VALUE self);

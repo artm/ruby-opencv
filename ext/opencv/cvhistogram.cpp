@@ -46,6 +46,7 @@ define_ruby_class()
   rb_define_method(rb_klass, "calc_hist", RUBY_METHOD_FUNC(rb_calc_hist), -1);
   rb_define_method(rb_klass, "calc_hist!", RUBY_METHOD_FUNC(rb_calc_hist_bang), -1);
   rb_define_method(rb_klass, "[]", RUBY_METHOD_FUNC(rb_aref), -2);
+  rb_define_method(rb_klass, "[]=", RUBY_METHOD_FUNC(rb_aset), -2);
   rb_define_alias(rb_klass, "query_hist_value", "[]");
   rb_define_method(rb_klass, "min_max_value", RUBY_METHOD_FUNC(rb_min_max_value), 0);
   rb_define_method(rb_klass, "copy_hist", RUBY_METHOD_FUNC(rb_copy_hist), 0);
@@ -255,6 +256,43 @@ rb_aref(VALUE self, VALUE args)
   }
   
   return rb_float_new((double)value);
+}
+
+/*
+ * call-seq:
+ *   [<i>idx1[,idx2]...</i>] = <i>value</i>
+ *
+ * Set value of the particular histogram array element to <i>value</i>.
+ * <i>value</i> should be CvScalar.
+ */
+VALUE
+rb_aset(VALUE self, VALUE args)
+{
+    CvScalar scalar = cvScalar( NUM2DBL( rb_ary_pop(args) ) );
+
+    int index_count = RARRAY_LEN(args);
+    int index[index_count];
+    for (int i = 0; i < index_count; ++i)
+        index[i] = NUM2INT(rb_ary_entry(args, i));
+
+    try {
+        CvHistogram* self_ptr = CVHISTOGRAM(self);
+        switch ( index_count ) {
+            case 1:
+                cvSet1D(self_ptr->bins, index[0], scalar);
+                break;
+            case 2:
+                cvSet2D(self_ptr->bins, index[0], index[1], scalar);
+                break;
+            default:
+                cvSetND(self_ptr->bins, index, scalar);
+                break;
+        }
+    }
+    catch (cv::Exception& e) {
+        raise_cverror(e);
+    }
+    return self;
 }
 
 VALUE
