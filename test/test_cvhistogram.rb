@@ -278,5 +278,13 @@ class TestCvHistogram < OpenCVTestCase
     flunk("TODO: get non-uniform ranges")
   end
 
+  def test_aref=
+    expected = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+    expected.each_with_index { |x, i|
+      @hist1[i] = expected[i]
+      assert_in_delta(x, @hist1[i], 0.001)
+    }
+  end
+
 end
 
