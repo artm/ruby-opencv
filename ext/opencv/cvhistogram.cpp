@@ -67,6 +67,7 @@ define_ruby_class()
 
   rb_define_method(rb_klass, "set_hist_bin_ranges", RUBY_METHOD_FUNC(rb_set_hist_bin_ranges), -1);
   rb_define_method(rb_klass, "set_hist_bin_ranges!", RUBY_METHOD_FUNC(rb_set_hist_bin_ranges_bang), -1);
+  rb_define_method(rb_klass, "get_ranges", RUBY_METHOD_FUNC(rb_get_ranges), 0);
 
   rb_define_method(rb_klass, "calc_back_project", RUBY_METHOD_FUNC(rb_calc_back_project), 1);
   rb_define_method(rb_klass, "calc_back_project_patch", RUBY_METHOD_FUNC(rb_calc_back_project_patch), 4);
@@ -444,6 +445,35 @@ rb_set_hist_bin_ranges_bang(int argc, VALUE* argv, VALUE self)
   }
 
   return self;
+}
+
+/*
+ * call-seq:
+ *   get_ranges
+ */
+VALUE
+rb_get_ranges(VALUE self)
+{
+    VALUE ranges;
+    int size[CV_MAX_DIM];
+    int dims = 0;
+    try {
+        CvHistogram * hist = CVHISTOGRAM(self);
+        int size[CV_MAX_DIM]; // not sure if we can just pass NULL below...
+        int dims = cvGetDims(hist->bins, size);
+        ranges = rb_ary_new2(dims);
+        for (int i = 0; i < dims; ++i) {
+            VALUE one_range = rb_ary_new2(2);
+            rb_ary_store( one_range, 0, INT2NUM( hist->thresh[i][0] ) );
+            rb_ary_store( one_range, 1, INT2NUM( hist->thresh[i][1] ) );
+            rb_ary_store( ranges, i, one_range );
+        }
+    }
+    catch (cv::Exception& e) {
+        raise_cverror(e);
+    }
+
+    return ranges;
 }
 
 VALUE

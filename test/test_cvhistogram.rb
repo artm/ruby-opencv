@@ -267,5 +267,16 @@ class TestCvHistogram < OpenCVTestCase
       CvHistogram.calc_prob_density(hist, DUMMY_OBJ)
     }
   end
+
+  def test_get_ranges
+    expected_ranges = [[0,100]]
+    hist = CvHistogram.new 1, [5], CV_HIST_ARRAY, expected_ranges
+    hist.get_ranges.each_with_index { |pair, dim|
+      assert_in_delta( pair[0], expected_ranges[dim][0], 1e-3 )
+      assert_in_delta( pair[1], expected_ranges[dim][1], 1e-3 )
+    }
+    flunk("TODO: get non-uniform ranges")
+  end
+
 end
 
