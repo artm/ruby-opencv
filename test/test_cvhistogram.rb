@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# -*- mode: ruby; coding: utf-8-unix -*- 
+# -*- mode: ruby; coding: utf-8-unix -*-
 require 'test/unit'
 require 'opencv'
 require File.expand_path(File.dirname(__FILE__)) + '/helper'
@@ -167,7 +167,7 @@ class TestCvHistogram < OpenCVTestCase
     assert_false(hist.has_range?)
     assert(hist.is_uniform?)
 
-    ranges = [[0, 255]]    
+    ranges = [[0, 255]]
     hist.set_hist_bin_ranges!(ranges, true)
     assert(hist.has_range?)
     assert(hist.is_uniform?)
@@ -279,11 +279,17 @@ class TestCvHistogram < OpenCVTestCase
   end
 
   def test_aref=
-    expected = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
-    expected.each_with_index { |x, i|
-      @hist1[i] = expected[i]
-      assert_in_delta(x, @hist1[i], 0.001)
+    hist = CvHistogram.new(1, [8], CV_HIST_ARRAY, [[0, 255]], true)
+    (0...8).each { |i|
+      hist[i] = @hist1[i]
+      assert_in_delta(@hist1[i], hist[i], 0.001)
     }
+    cmp = CvHistogram.compare_hist( @hist1, @hist1, CV_COMP_CORREL )
+    assert_in_delta( cmp , 1.0, 0.001 )
+    puts "self cmp: #{cmp}"
+
+    cmp = CvHistogram.compare_hist( hist, @hist1, CV_COMP_CORREL )
+    assert_in_delta( cmp , 1.0, 0.001 )
   end
 
 end
