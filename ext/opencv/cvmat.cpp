@@ -302,6 +302,8 @@ void define_ruby_class()
   rb_define_method(rb_klass, "poly_line!", RUBY_METHOD_FUNC(rb_poly_line_bang), -1);
   rb_define_method(rb_klass, "put_text", RUBY_METHOD_FUNC(rb_put_text), -1);
   rb_define_method(rb_klass, "put_text!", RUBY_METHOD_FUNC(rb_put_text_bang), -1);
+  rb_define_method(rb_klass, "draw_contours", RUBY_METHOD_FUNC(rb_draw_contours), -1);
+  rb_define_method(rb_klass, "draw_contours!", RUBY_METHOD_FUNC(rb_draw_contours_bang), -1);
 
   rb_define_method(rb_klass, "dft", RUBY_METHOD_FUNC(rb_dft), -1);
   rb_define_method(rb_klass, "dct", RUBY_METHOD_FUNC(rb_dct), -1);
@@ -953,7 +955,7 @@ rb_get_rows(VALUE self, VALUE args)
   VALUE ary = rb_ary_new2(len);
   for (int i = 0; i < len; ++i) {
     VALUE value = rb_ary_entry(args, i);
-    
+
     CvMat* row = NULL;
     try {
       if (FIXNUM_P(value))
@@ -1165,7 +1167,7 @@ rb_aref(VALUE self, VALUE args)
   int index[CV_MAX_DIM];
   for (int i = 0; i < RARRAY_LEN(args); ++i)
     index[i] = NUM2INT(rb_ary_entry(args, i));
-  
+
   CvScalar scalar = cvScalarAll(0);
   try {
     switch (RARRAY_LEN(args)) {
@@ -1177,7 +1179,7 @@ rb_aref(VALUE self, VALUE args)
       break;
     default:
       scalar = cvGetND(CVARR(self), index);
-      break;      
+      break;
     }
   }
   catch (cv::Exception& e) {
@@ -1278,7 +1280,7 @@ rb_set_data(VALUE self, VALUE data)
   }
 
   try {
-    cvSetData(self_ptr, array, self_ptr->step);    
+    cvSetData(self_ptr, array, self_ptr->step);
   }
   catch (cv::Exception& e) {
     raise_cverror(e);
@@ -1320,7 +1322,7 @@ rb_fill_bang(int argc, VALUE *argv, VALUE self)
   VALUE value, mask;
   rb_scan_args(argc, argv, "11", &value, &mask);
   try {
-    cvSet(CVARR(self), VALUE_TO_CVSCALAR(value), MASK(mask));    
+    cvSet(CVARR(self), VALUE_TO_CVSCALAR(value), MASK(mask));
   }
   catch (cv::Exception& e) {
     raise_cverror(e);
@@ -1885,7 +1887,7 @@ rb_mat_mul(int argc, VALUE *argv, VALUE self)
 {
   VALUE val, shiftvec, dest;
   rb_scan_args(argc, argv, "11", &val, &shiftvec);
-  CvArr* self_ptr = CVARR(self);  
+  CvArr* self_ptr = CVARR(self);
   dest = new_mat_kind_object(cvGetSize(self_ptr), self);
   try {
     if (NIL_P(shiftvec))
@@ -1949,7 +1951,7 @@ rb_div(int argc, VALUE *argv, VALUE self)
  *
  * The function calculates the weighted sum of two arrays as follows:
  *   dst(I)=src1(I)*alpha+src2(I)*beta+gamma
- * All the arrays must have the same type and the same size (or ROI size). 
+ * All the arrays must have the same type and the same size (or ROI size).
  * For types that have limited range this operation is saturating.
  */
 VALUE
@@ -2675,7 +2677,7 @@ rb_svd(int argc, VALUE *argv, VALUE self)
 
   CvMat* self_ptr = CVMAT(self);
   VALUE w = new_mat_kind_object(cvSize(self_ptr->cols, self_ptr->rows), self);
-  
+
   int rows = 0;
   int cols = 0;
   if (flag & CV_SVD_U_T) {
@@ -3395,6 +3397,32 @@ rb_put_text_bang(int argc, VALUE* argv, VALUE self)
   return self;
 }
 
+VALUE
+rb_draw_contours(int argc, VALUE* argv, VALUE self)
+{
+  return rb_draw_contours_bang(argc, argv, rb_clone(self));
+}
+
+VALUE
+rb_draw_contours_bang(int argc, VALUE* argv, VALUE self)
+{
+  VALUE _contour, _external_color, _hole_color, _max_level, _thickness, _lineType;
+  rb_scan_args(argc, argv, "42",&_contour,&_external_color,&_hole_color,&_max_level,
+      &_thickness, &_lineType);
+
+  try {
+    cvDrawContours(CVARR(self), CVSEQ(_contour), VALUE_TO_CVSCALAR(_external_color),
+        VALUE_TO_CVSCALAR(_hole_color), NUM2INT(_max_level),
+        NIL_P(_thickness) ? 1 : NUM2INT(_thickness),
+        NIL_P(_lineType) ? 8 : NUM2INT(_lineType));
+
+  }
+  catch (cv::Exception& e) {
+    raise_cverror(e);
+  }
+  return self;
+}
+
 /*
  * call-seq:
  *   sobel(<i>xorder,yorder[,aperture_size=3]</i>) -> cvmat
@@ -3480,7 +3508,7 @@ rb_canny(int argc, VALUE *argv, VALUE self)
     aperture_size = INT2FIX(3);
   CvArr* self_ptr = CVARR(self);
   VALUE dest = new_mat_kind_object(cvGetSize(self_ptr), self);
-  
+
   try {
     cvCanny(self_ptr, CVARR(dest), NUM2INT(thresh1), NUM2INT(thresh2), NUM2INT(aperture_size));
   }
@@ -3832,7 +3860,7 @@ rb_warp_affine(int argc, VALUE *argv, VALUE self)
 /*
  * call-seq:
  *   CvMat.find_homograpy(<i>src_points, dst_points[,method = :all][,ransac_reproj_threshold = 0][,get_status = nil]</i>) -> cvmat
- * 
+ *
  * Finds the perspective transformation between two planes.
  * <i>src_points:</i> Coordinates of the points in the original plane, 2xN, Nx2, 3xN or Nx3 1-channel array (the latter two are for representation in homogeneous coordinates), where N is the number of points. 1xN or Nx1 2- or 3-channel array can also be passed.
  * <i>dst_points:</i> Point coordinates in the destination plane, 2xN, Nx2, 3xN or Nx3 1-channel, or 1xN or Nx1 2- or 3-channel array.
@@ -4221,7 +4249,7 @@ rb_smooth(int argc, VALUE *argv, VALUE self)
   VALUE smoothtype, p1, p2, p3, p4;
   rb_scan_args(argc, argv, "14", &smoothtype, &p1, &p2, &p3, &p4);
   int _smoothtype = CVMETHOD("SMOOTHING_TYPE", smoothtype, -1);
-  
+
   VALUE (*smooth_func)(int c, VALUE* v, VALUE s);
   argc--;
   switch (_smoothtype) {
@@ -4367,7 +4395,7 @@ rb_integral(int argc, VALUE *argv, VALUE self)
   catch (cv::Exception& e) {
     raise_cverror(e);
   }
-  
+
   if ((need_sqsum != Qtrue) && (need_tiled_sum != Qtrue))
     return sum;
   else {
@@ -4418,7 +4446,7 @@ rb_threshold(int argc, VALUE *argv, VALUE self)
   int type = CVMETHOD("THRESHOLD_TYPE", threshold_type, INVALID_TYPE);
   if (type == INVALID_TYPE)
     rb_raise(rb_eArgError, "Invalid threshold type.");
-  
+
   return rb_threshold_internal(type, threshold, max_value, use_otsu, self);
 }
 
@@ -4472,7 +4500,7 @@ rb_adaptive_threshold(int argc, VALUE *argv, VALUE self)
   catch (cv::Exception& e) {
     raise_cverror(e);
   }
-  
+
   return dst;
 }
 
@@ -4938,7 +4966,7 @@ rb_hough_circles(int argc, VALUE *argv, VALUE self)
 {
   const int INVALID_TYPE = -1;
   VALUE method, dp, min_dist, param1, param2, min_radius, max_radius, storage;
-  rb_scan_args(argc, argv, "52", &method, &dp, &min_dist, &param1, &param2, 
+  rb_scan_args(argc, argv, "52", &method, &dp, &min_dist, &param1, &param2,
 	       &min_radius, &max_radius);
   storage = cCvMemStorage::new_object();
   int method_flag = CVMETHOD("HOUGH_TRANSFORM_METHOD", method, INVALID_TYPE);
@@ -5116,7 +5144,7 @@ rb_mean_shift(VALUE self, VALUE window, VALUE criteria)
 {
   VALUE comp = cCvConnectedComp::new_object();
   try {
-    cvMeanShift(CVARR(self), VALUE_TO_CVRECT(window), VALUE_TO_CVTERMCRITERIA(criteria), CVCONNECTEDCOMP(comp));    
+    cvMeanShift(CVARR(self), VALUE_TO_CVRECT(window), VALUE_TO_CVTERMCRITERIA(criteria), CVCONNECTEDCOMP(comp));
   }
   catch (cv::Exception& e) {
     raise_cverror(e);
@@ -5227,7 +5255,7 @@ rb_snake_image(int argc, VALUE *argv, VALUE self)
   for (i = 0; i < length; ++i)
     rb_ary_push(result, cCvPoint::new_object(pointset[i]));
   cvFree(&pointset);
-  
+
   return result;
 }
 
@@ -5470,7 +5498,7 @@ rb_compute_correspond_epilines(VALUE klass, VALUE points, VALUE which_image, VAL
     n = points_ptr->cols;
   else
     rb_raise(rb_eArgError, "input points should 2xN, Nx2 or 3xN, Nx3 matrix(N >= 7).");
-  
+
   correspondent_lines = cCvMat::new_object(n, 3, CV_MAT_DEPTH(points_ptr->type));
   try {
     cvComputeCorrespondEpilines(points_ptr, NUM2INT(which_image), CVMAT_WITH_CHECK(fundamental_matrix),
@@ -5512,7 +5540,7 @@ rb_extract_surf(int argc, VALUE *argv, VALUE self)
     raise_cverror(e);
   }
   VALUE _keypoints = cCvSeq::new_sequence(cCvSeq::rb_class(), keypoints, cCvSURFPoint::rb_class(), storage);
-  
+
   // Create descriptor array
   const int DIM_SIZE = (params.extended) ? 128 : 64;
   const int NUM_KEYPOINTS = keypoints->total;
@@ -5525,7 +5553,7 @@ rb_extract_surf(int argc, VALUE *argv, VALUE self)
     }
     rb_ary_store(_descriptors, m, elem);
   }
-  
+
   return rb_assoc_new(_keypoints, _descriptors);
 }
 

@@ -89,10 +89,10 @@ VALUE rb_lut(VALUE self, VALUE lut);
 VALUE rb_convert_scale(VALUE self, VALUE hash);
 VALUE rb_convert_scale_abs(VALUE self, VALUE hash);
 VALUE rb_add(int argc, VALUE *argv, VALUE self);
-VALUE rb_sub(int argc, VALUE *argv, VALUE self);    
+VALUE rb_sub(int argc, VALUE *argv, VALUE self);
 VALUE rb_mul(int argc, VALUE *argv, VALUE self);
 VALUE rb_mat_mul(int argc, VALUE *argv, VALUE self);
-VALUE rb_div(int argc, VALUE *argv, VALUE self);    
+VALUE rb_div(int argc, VALUE *argv, VALUE self);
 VALUE rb_and(int argc, VALUE *argv, VALUE self);
 VALUE rb_or(int argc, VALUE *argv, VALUE self);
 VALUE rb_xor(int argc, VALUE *argv, VALUE self);
@@ -157,6 +157,8 @@ VALUE rb_poly_line(int argc, VALUE *argv, VALUE self);
 VALUE rb_poly_line_bang(int argc, VALUE *argv, VALUE self);
 VALUE rb_put_text(int argc, VALUE *argv, VALUE self);
 VALUE rb_put_text_bang(int argc, VALUE *argv, VALUE self);
+VALUE rb_draw_contours(int argc, VALUE *argv, VALUE self);
+VALUE rb_draw_contours_bang(int argc, VALUE *argv, VALUE self);
 
 /* cv function */
 VALUE rb_sobel(int argc, VALUE *argv, VALUE self);
