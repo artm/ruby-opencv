@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# -*- mode: ruby; coding: utf-8-unix -*- 
+# -*- mode: ruby; coding: utf-8-unix -*-
 require 'test/unit'
 require 'opencv'
 require File.expand_path(File.dirname(__FILE__)) + '/helper'
@@ -30,7 +30,7 @@ class TestCvMat_drawing < OpenCVTestCase
                  :color => CvColor::Red, :thickness => 3, :line_type => :aa)
     m1.line!(CvPoint.new(1, 0), CvPoint.new(m0.width - 1, m0.height - 1),
              :color => CvColor::Blue, :thickness => 1, :line_type => :aa)
-    
+
     # Uncomment the following line to show the image
     # snap(['Line: Blue, thickness = 1', m1], ['Line: Red, thickness = 3', m2])
 
@@ -192,7 +192,7 @@ class TestCvMat_drawing < OpenCVTestCase
   def test_fill_convex_poly
     m0 = create_cvmat(240, 320, :cv8u, 3) { CvColor::White }
     pt = [CvPoint.new(10, 20), CvPoint.new(10, 150), CvPoint.new(100, 50)]
-    
+
     m1 = m0.clone
     m2 = m0.fill_convex_poly(pt, :color => CvColor::Red, :line_type => :aa)
     m1.fill_convex_poly!(pt, :color => CvColor::Blue, :line_type => :aa)
@@ -313,6 +313,20 @@ class TestCvMat_drawing < OpenCVTestCase
       m0.put_text('test', CvPoint.new(60, 90), font, DUMMY_OBJ)
     }
   end
+
+  def test_draw_contours
+    m0 = create_cvmat(256, 256, :cv8u, 1) { |j, i|
+      (j - 64) ** 2 + (i - 64) ** 2 <= (32 ** 2) ? CvColor::White : CvColor::Black
+    }
+    contours = m0.find_contours
+
+    m1 = create_cvmat(256, 256, :cv8u, 1) { CvColor::White }
+    m1.draw_contours!(contours, CvColor::Black, CvColor::Black, 5)
+
+    snap(['orig', m0], ['draw contours', m1])
+  end
+
+
 end
 
 
